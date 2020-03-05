@@ -107,13 +107,13 @@ func main() {
 		}, nil
 	}
 
-	var re = regexp.MustCompile(`-CP1$`)
+	var re = regexp.MustCompile(`-CP3$`)
 	test := re.MatchString(name)
 
 	//start the VIA monitoring connection if the Controller is CP1
 	if test == true && len(os.Getenv("ROOM_SYSTEM")) > 0 {
 		for _, device := range deviceList {
-			go monitor.StartMonitoring(device)
+			go monitor.StartMonitoring(device, username, password)
 		}
 	}
 

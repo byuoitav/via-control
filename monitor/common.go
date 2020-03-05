@@ -18,7 +18,7 @@ import (
 	"github.com/byuoitav/common/structs"
 	"github.com/byuoitav/common/v2/events"
 	"github.com/byuoitav/kramer-driver/via"
-	"github.com/fatih/color"
+	//"github.com/fatih/color"
 )
 
 const (
@@ -67,8 +67,6 @@ type message struct {
 
 // Ping over connection to keep alive.
 func pingTest(pconn *net.TCPConn) error {
-	defer color.Unset()
-	color.Set(color.FgCyan)
 	var c via.Command
 	c.Username = "su"
 	c.Command = "IpInfo"
@@ -86,13 +84,13 @@ func pingTest(pconn *net.TCPConn) error {
 
 // Retry connection if connection has failed
 func retryViaConnection(device structs.Device, pconn *net.TCPConn, event events.Event) {
-	log.L.Info(color.HiMagentaString("[retry] Retrying Connection to VIA"))
+	log.L.Info("[retry] Retrying Connection to VIA")
 	addr := device.Address
-	pconn, err := via.PersistConnection(addr)
+	pconn, err := via.PersistConnection(addr, via.ViaUser, via.ViaPass)
 	for err != nil {
-		log.L.Error(color.RedString("Retry Failed, Trying again in 10 seconds"))
+		log.L.Error("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
-		pconn, err = via.PersistConnection(addr)
+		pconn, err = via.PersistConnection(addr, via.ViaUser, via.ViaPass)
 	}
 
 	go readPump(device, pconn, event)
@@ -104,8 +102,8 @@ func readPump(device structs.Device, pconn *net.TCPConn, event events.Event) {
 	// defer closing connection
 	defer func(device structs.Device) {
 		pconn.Close()
-		log.L.Errorf(color.HiRedString("Connection to VIA %v is dying.", device.Address))
-		log.L.Info(color.HiRedString("Trying to reconnect........"))
+		log.L.Errorf("Connection to VIA %v is dying.", device.Address)
+		log.L.Info("Trying to reconnect........")
 		//retry connection to VIA device
 		retryViaConnection(device, pconn, event)
 	}(device)
@@ -202,7 +200,7 @@ func writePump(device structs.Device, pconn *net.TCPConn) {
 	// defer closing connection
 	defer func(device structs.Device) {
 		pconn.Close()
-		log.L.Errorf(color.HiRedString("Error on write pump for %v. Write pump closing.", device.Address))
+		log.L.Errorf("Error on write pump for %v. Write pump closing.", device.Address)
 	}(device)
 	ticker := time.NewTicker(pingInterval * time.Millisecond)
 	// Once the pingInterval is reached, execute the ping -
@@ -210,20 +208,21 @@ func writePump(device structs.Device, pconn *net.TCPConn) {
 	for range ticker.C {
 		err := pingTest(pconn)
 		if err != nil {
-			log.L.Errorf(color.HiRedString("Ping Failed Error: %v", err))
+			log.L.Errorf("Ping Failed Error: %v", err)
 			return
 		}
 	}
 }
 
 // StartMonitoring service for each VIA in a room
-func StartMonitoring(device structs.Device) *net.TCPConn {
-	fmt.Printf("Building Connection and starting read buffer for %s\n", device.Address)
+func StartMonitoring(device structs.Device, viaUser string, viaPass string) (*net.TCPConn, error) {
+	log.L.Debugf("Building Connection and starting read buffer for %s\n", device.Address)
 	addr := device.Address
-	pconn, err := via.PersistConnection(addr)
-	if err != nil {
-		err = fmt.Errorf("error reading response: %s", err.Error())
-		return nil
+	pconn, err := via.PersistConnection(addr, viaUser, viaPass)
+	for err != nil {
+		log.L.Error("Retry Failed, Trying again in 10 seconds")
+		time.Sleep(reconnInterval)
+		pconn, err = via.PersistConnection(addr, viaUser, viaPass)
 	}
 
 	// start event node
@@ -243,7 +242,7 @@ func StartMonitoring(device structs.Device) *net.TCPConn {
 
 	go readPump(device, pconn, event)
 	go writePump(device, pconn)
-	return pconn
+	return pconn, nil
 }
 
 var once sync.Once
