@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"bufio"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"net"
@@ -18,7 +19,6 @@ import (
 	"github.com/byuoitav/common/structs"
 	"github.com/byuoitav/common/v2/events"
 	"github.com/byuoitav/kramer-driver/via"
-	//"github.com/fatih/color"
 )
 
 const (
@@ -86,11 +86,11 @@ func pingTest(pconn *net.TCPConn) error {
 func retryViaConnection(device structs.Device, pconn *net.TCPConn, event events.Event, viaUser string, viaPass string) {
 	log.L.Info("[retry] Retrying Connection to VIA")
 	addr := device.Address
-	pconn, err := via.PersistConnection(addr, viaUser, viaPass)
+	pconn, err := (*via.VIA).PersistConnection()
 	for err != nil {
 		log.L.Error("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
-		pconn, err = via.PersistConnection(addr, viaUser, viaPass)
+		pconn, err = (*VIA).PersistConnection(addr, viaUser, viaPass)
 	}
 
 	go readPump(device, pconn, event, viaUser, viaPass)
@@ -215,14 +215,14 @@ func writePump(device structs.Device, pconn *net.TCPConn) {
 }
 
 // StartMonitoring service for each VIA in a room
-func StartMonitoring(device structs.Device, viaUser string, viaPass string) *net.TCPConn {
+func StartMonitoring(ctx context.Context, device structs.Device, viaUser string, viaPass string) *net.TCPConn {
 	log.L.Debugf("Building Connection and starting read buffer for %s\n", device.Address)
 	addr := device.Address
-	pconn, err := via.PersistConnection(addr, viaUser, viaPass)
+	pconn, err := v.PersistConnection(ctx)
 	for err != nil {
 		log.L.Error("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
-		pconn, err = via.PersistConnection(addr, viaUser, viaPass)
+		pconn, err = v.PersistConnection(ctx)
 	}
 
 	// start event node

@@ -113,7 +113,7 @@ func main() {
 	//start the VIA monitoring connection if the Controller is CP1
 	if test == true && len(os.Getenv("ROOM_SYSTEM")) > 0 {
 		for _, device := range deviceList {
-			go monitor.StartMonitoring(device, username, password)
+			go monitor.StartMonitoring(ctx, device, username, password)
 		}
 	}
 

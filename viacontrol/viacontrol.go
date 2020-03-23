@@ -18,14 +18,14 @@ type wrappedEchoServer struct {
 }
 
 type ViaDevice interface {
-	GetVolume(ctx context.Context, address string) (int, error)
-	SetVolume(ctx context.Context, address string, volume string) (string, error)
+	GetVolume(ctx context.Context) (int, error)
+	SetVolume(ctx context.Context, volume string) (string, error)
 	RebootVIA(ctx context.Context) error
 	ResetVIA(ctx context.Context) error
-	GetRoomCode(ctx context.Context, address string) (string, error)
-	IsConnected(ctx context.Context, address string) bool
-	GetHardwareInfo(ctx context.Context, address string) (structs.HardwareInfo, error)
-	GetStatusOfUsers(ctx context.Context, address string) (structs.VIAUsers, error)
+	GetRoomCode(ctx context.Context) (string, error)
+	IsConnected(ctx context.Context) bool
+	GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error)
+	GetStatusOfUsers(ctx context.Context) (structs.VIAUsers, error)
 }
 
 type Server interface {
@@ -82,11 +82,11 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusBadRequest, "must include the address of the VIA")
 		}
 
-		d, err := create(c.Request().Context(), addr)
+		d, err := create(c.Request().Context())
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
-		volume, err := d.GetVolume(c.Request().Context(), addr)
+		volume, err := d.GetVolume(c.Request().Context())
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -115,7 +115,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		response, err := d.SetVolume(c.Request().Context(), address, value)
+		response, err := d.SetVolume(c.Request().Context(), value)
 
 		if err != nil {
 			log.L.Debugf("An Error Occured: %s", err)
@@ -228,7 +228,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		code, err := d.GetRoomCode(c.Request().Context(), address)
+		code, err := d.GetRoomCode(c.Request().Context())
 		if err != nil {
 			log.L.Errorf("Failed to retrieve VIA room code: %s", err.Error())
 			return c.JSON(http.StatusInternalServerError, err)
@@ -245,7 +245,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		userlist, err := d.GetStatusOfUsers(c.Request().Context(), address)
+		userlist, err := d.GetStatusOfUsers(c.Request().Context())
 		if err != nil {
 			log.L.Errorf("Failed to retrieve current user list: %s", err.Error())
 			return c.JSON(http.StatusInternalServerError, err)
