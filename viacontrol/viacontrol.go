@@ -82,7 +82,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusBadRequest, "must include the address of the VIA")
 		}
 
-		d, err := create(c.Request().Context())
+		d, err := create(c.Request().Context(), addr)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -175,7 +175,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		connected := d.IsConnected(c.Request().Context(), address)
+		connected := d.IsConnected(c.Request().Context())
 
 		if connected {
 			log.L.Debugf("%s is connected", address)
@@ -195,7 +195,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		hardware, err := d.GetHardwareInfo(c.Request().Context(), address)
+		hardware, err := d.GetHardwareInfo(c.Request().Context())
 		if err != nil {
 			log.L.Debugf("Error getting hardware status: %s", err.Error())
 			return c.JSON(http.StatusInternalServerError, err.Error())
