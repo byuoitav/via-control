@@ -8,10 +8,14 @@ import (
 	"sync"
 
 	"github.com/byuoitav/common/log"
-	"github.com/byuoitav/common/status"
-	"github.com/byuoitav/common/structs"
+	//"github.com/byuoitav/common/status"
+	"github.com/byuoitav/kramer-driver/via"
 	"github.com/labstack/echo"
 )
+
+type Volume struct {
+	Volume int `json:"volume"`
+}
 
 type wrappedEchoServer struct {
 	*echo.Echo
@@ -24,8 +28,8 @@ type ViaDevice interface {
 	ResetVIA(ctx context.Context) error
 	GetRoomCode(ctx context.Context) (string, error)
 	IsConnected(ctx context.Context) bool
-	GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error)
-	GetStatusOfUsers(ctx context.Context) (structs.VIAUsers, error)
+	GetHardwareInfo(ctx context.Context) (via.HardwareInfo, error)
+	GetStatusOfUsers(ctx context.Context) (via.VIAUsers, error)
 }
 
 type Server interface {
@@ -123,7 +127,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 		}
 		log.L.Debugf("Success: %s", response)
 
-		return c.JSON(http.StatusOK, status.Volume{Volume: volume})
+		return c.JSON(http.StatusOK, Volume{Volume: volume})
 
 	})
 	// VIA Reset and Rebooting of Endpoints

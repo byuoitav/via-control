@@ -97,7 +97,7 @@ func main() {
 		fmt.Printf("failed to start server: %s\n", err)
 		os.Exit(1)
 	}
-
+	log.L.Info("This is the addr value: ", addr)
 	// import driver library
 	createVia := func(ctx context.Context, addr string) (viacontrol.ViaDevice, error) {
 		return &via.VIA{
