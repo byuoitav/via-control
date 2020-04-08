@@ -86,8 +86,8 @@ func main() {
 	)
 
 	pflag.IntVarP(&port, "port", "P", 8014, "port to run the microservice on")
-	pflag.StringVarP(&username, "username", "u", "su", "username for device")
-	pflag.StringVarP(&password, "password", "p", "supass", "password for device")
+	pflag.StringVarP(&username, "username", "u", "", "username for device")
+	pflag.StringVarP(&password, "password", "p", "", "password for device")
 
 	pflag.Parse()
 
