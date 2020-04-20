@@ -30,7 +30,7 @@ type ViaDevice interface {
 	IsConnected(ctx context.Context) bool
 	GetHardwareInfo(ctx context.Context) (via.HardwareInfo, error)
 	GetStatusOfUsers(ctx context.Context) (via.VIAUsers, error)
-	SetAlert(ctx context.Context, AMessage string) error
+	SetAlert(ctx context.Context, AMessage string) (string, error)
 }
 
 type Server interface {
@@ -260,15 +260,16 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 		return c.JSON(http.StatusOK, userlist)
 	})
 	// Send an alert to a VIA
-	e.Get("/:address/alert/message/:message", func(c echo.Context) error {
+	e.GET("/:address/alert/message/:message", func(c echo.Context) error {
 		address := c.Param("address")
+		message := c.Param("message")
 
 		d, err := create(c.Request().Context(), address)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 
-		alertresp, err := d.SetAlert(c.Request().Context())
+		alertresp, err := d.SetAlert(c.Request().Context(), message)
 		if err != nil {
 			log.L.Errorf("Failed to send alert to %s: %s", address, err.Error())
 			return c.JSON(http.StatusInternalServerError, err)
