@@ -86,8 +86,8 @@ func main() {
 	)
 
 	pflag.IntVarP(&port, "port", "P", 8014, "port to run the microservice on")
-	pflag.StringVarP(&username, "username", "u", "su", "username for device")
-	pflag.StringVarP(&password, "password", "p", "supass", "password for device")
+	pflag.StringVarP(&username, "username", "u", "", "username for device")
+	pflag.StringVarP(&password, "password", "p", "", "password for device")
 
 	pflag.Parse()
 
@@ -97,7 +97,7 @@ func main() {
 		fmt.Printf("failed to start server: %s\n", err)
 		os.Exit(1)
 	}
-
+	log.L.Info("This is the addr value: ", addr)
 	// import driver library
 	createVia := func(ctx context.Context, addr string) (viacontrol.ViaDevice, error) {
 		return &kramer.VIA{
@@ -110,7 +110,7 @@ func main() {
 
 	var re = regexp.MustCompile(`-CP3$`)
 	test := re.MatchString(name)
-
+	var ctx context.Context
 	//start the VIA monitoring connection if the Controller is CP1
 	if test == true && len(os.Getenv("ROOM_SYSTEM")) > 0 {
 		for _, device := range deviceList {
