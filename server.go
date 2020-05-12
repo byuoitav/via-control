@@ -14,7 +14,7 @@ import (
 	"github.com/byuoitav/common/db"
 	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/structs"
-	"github.com/byuoitav/kramer-driver/via"
+	"github.com/byuoitav/kramer-driver/kramer"
 	"github.com/byuoitav/via-control/monitor"
 	"github.com/byuoitav/via-control/viacontrol"
 )
@@ -100,10 +100,11 @@ func main() {
 
 	// import driver library
 	createVia := func(ctx context.Context, addr string) (viacontrol.ViaDevice, error) {
-		return &via.VIA{
+		return &kramer.VIA{
 			Address:  addr,
 			Username: username,
 			Password: password,
+			logger:   v.logger,
 		}, nil
 	}
 
