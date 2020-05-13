@@ -14,7 +14,7 @@ import (
 	"github.com/byuoitav/common/db"
 	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/structs"
-	"github.com/byuoitav/kramer-driver/kramer"
+	"github.com/byuoitav/kramer-driver"
 	"github.com/byuoitav/via-control/monitor"
 	"github.com/byuoitav/via-control/viacontrol"
 )

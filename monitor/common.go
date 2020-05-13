@@ -18,7 +18,7 @@ import (
 	"github.com/byuoitav/common/nerr"
 	"github.com/byuoitav/common/structs"
 	"github.com/byuoitav/common/v2/events"
-	"github.com/byuoitav/kramer-driver/via"
+	"github.com/byuoitav/kramer-driver"
 )
 
 const (
