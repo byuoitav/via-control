@@ -9,7 +9,7 @@ import (
 
 	"github.com/byuoitav/common/log"
 	//"github.com/byuoitav/common/status"
-	"github.com/byuoitav/kramer-driver"
+	"github.com/byuoitav/kramer-driver/kramer"
 	"github.com/labstack/echo"
 )
 
@@ -28,8 +28,8 @@ type ViaDevice interface {
 	ResetVIA(ctx context.Context) error
 	GetRoomCode(ctx context.Context) (string, error)
 	IsConnected(ctx context.Context) bool
-	GetHardwareInfo(ctx context.Context) (via.HardwareInfo, error)
-	GetStatusOfUsers(ctx context.Context) (via.VIAUsers, error)
+	GetHardwareInfo(ctx context.Context) (kramer.HardwareInfo, error)
+	GetStatusOfUsers(ctx context.Context) (kramer.VIAUsers, error)
 	SetAlert(ctx context.Context, AMessage string) (string, error)
 }
 

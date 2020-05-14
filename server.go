@@ -14,7 +14,7 @@ import (
 	"github.com/byuoitav/common/db"
 	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/structs"
-	"github.com/byuoitav/kramer-driver"
+	"github.com/byuoitav/kramer-driver/kramer"
 	"github.com/byuoitav/via-control/monitor"
 	"github.com/byuoitav/via-control/viacontrol"
 )
@@ -100,21 +100,21 @@ func main() {
 	log.L.Info("This is the addr value: ", addr)
 	// import driver library
 	createVia := func(ctx context.Context, addr string) (viacontrol.ViaDevice, error) {
-		return &kramer.VIA{
+		return &kramer.Via{
 			Address:  addr,
 			Username: username,
 			Password: password,
-			logger:   v.logger,
+			logger:   kramer.Logger,
 		}, nil
 	}
 
 	var re = regexp.MustCompile(`-CP3$`)
 	test := re.MatchString(name)
 	var ctx context.Context
-	//start the VIA monitoring connection if the Controller is CP1
+	//start the persistent VIA monitoring connection if the Controller is CP1
 	if test == true && len(os.Getenv("ROOM_SYSTEM")) > 0 {
 		for _, device := range deviceList {
-			go monitor.StartMonitoring(ctx, device, username, password)
+			go monitor.StartMonitoring(ctx, device, *kramer.Via)
 		}
 	}
 
