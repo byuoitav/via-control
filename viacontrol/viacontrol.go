@@ -23,14 +23,14 @@ type wrappedEchoServer struct {
 
 type ViaDevice interface {
 	GetVolume(ctx context.Context) (int, error)
-	SetVolume(ctx context.Context, volume string) (string, error)
-	RebootVIA(ctx context.Context) error
-	ResetVIA(ctx context.Context) error
+	SetVolume(ctx context.Context, volume int) (string, error)
+	Reboot(ctx context.Context) error
+	Reset(ctx context.Context) error
 	GetRoomCode(ctx context.Context) (string, error)
-	IsConnected(ctx context.Context) bool
+	//IsConnected(ctx context.Context) bool
 	GetHardwareInfo(ctx context.Context) (kramer.HardwareInfo, error)
 	GetStatusOfUsers(ctx context.Context) (kramer.VIAUsers, error)
-	SetAlert(ctx context.Context, AMessage string) (string, error)
+	SetAlert(ctx context.Context, AMessage string) error
 }
 
 type Server interface {
@@ -58,7 +58,7 @@ type CreateVIAFunc func(context.Context, string) (ViaDevice, error)
 func CreateVIAServer(create CreateVIAFunc) (Server, error) {
 	e := newEchoServer()
 	m := &sync.Map{}
-
+	//Magic happens right here
 	via := func(ctx context.Context, addr string) (ViaDevice, error) {
 		if via, ok := m.Load(addr); ok {
 			return via.(ViaDevice), nil
@@ -120,7 +120,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		response, err := d.SetVolume(c.Request().Context(), value)
+		response, err := d.SetVolume(c.Request().Context(), volume)
 
 		if err != nil {
 			log.L.Debugf("An Error Occured: %s", err)
@@ -141,7 +141,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		err = d.ResetVIA(c.Request().Context())
+		err = d.Reset(c.Request().Context())
 		if err != nil {
 			log.L.Debugf("There was a problem: %v", err.Error())
 			return c.JSON(http.StatusInternalServerError, err.Error())
@@ -160,7 +160,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		err = d.RebootVIA(c.Request().Context())
+		err = d.Reboot(c.Request().Context())
 		if err != nil {
 			log.L.Debugf("There was a problem: %v", err.Error())
 			return c.JSON(http.StatusInternalServerError, err.Error())
@@ -172,26 +172,26 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 	})
 
 	// Informational Endpoints
-	e.GET("/:address/connected", func(c echo.Context) error {
-		address := c.Param("address")
+	/*	e.GET("/:address/connected", func(c echo.Context) error {
+			address := c.Param("address")
 
-		d, err := create(c.Request().Context(), address)
-		if err != nil {
-			return c.String(http.StatusInternalServerError, err.Error())
-		}
+			d, err := create(c.Request().Context(), address)
+			if err != nil {
+				return c.String(http.StatusInternalServerError, err.Error())
+			}
 
-		connected := d.IsConnected(c.Request().Context())
+			connected := d.IsConnected(c.Request().Context())
 
-		if connected {
-			log.L.Debugf("%s is connected", address)
-		} else {
-			log.L.Debugf("%s is not connected", address)
-		}
+			if connected {
+				log.L.Debugf("%s is connected", address)
+			} else {
+				log.L.Debugf("%s is not connected", address)
+			}
 
-		return c.JSON(http.StatusOK, connected)
+			return c.JSON(http.StatusOK, connected)
 
-	})
-
+		})
+	*/
 	e.GET("/:address/hardware", func(c echo.Context) error {
 		address := c.Param("address")
 
@@ -269,12 +269,12 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 
-		alertresp, err := d.SetAlert(c.Request().Context(), message)
+		err = d.SetAlert(c.Request().Context(), message)
 		if err != nil {
 			log.L.Errorf("Failed to send alert to %s: %s", address, err.Error())
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 
-		return c.JSON(http.StatusOK, alertresp)
+		return c.JSON(http.StatusOK, "Success")
 	})
 }

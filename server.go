@@ -9,14 +9,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/pflag"
-	//"github.com/byuoitav/common"
 	"github.com/byuoitav/common/db"
 	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/structs"
 	"github.com/byuoitav/kramer-driver/kramer"
 	"github.com/byuoitav/via-control/monitor"
 	"github.com/byuoitav/via-control/viacontrol"
+	"github.com/spf13/pflag"
 )
 
 /* global variable declaration */
@@ -104,8 +103,14 @@ func main() {
 			Address:  addr,
 			Username: username,
 			Password: password,
-			logger:   kramer.Logger,
+			//	Logger,
 		}, nil
+	}
+
+	var v *kramer.Via = &kramer.Via{
+		Address:  addr,
+		Username: username,
+		Password: password,
 	}
 
 	var re = regexp.MustCompile(`-CP3$`)
@@ -114,7 +119,7 @@ func main() {
 	//start the persistent VIA monitoring connection if the Controller is CP1
 	if test == true && len(os.Getenv("ROOM_SYSTEM")) > 0 {
 		for _, device := range deviceList {
-			go monitor.StartMonitoring(ctx, device, *kramer.Via)
+			go monitor.StartMonitoring(ctx, device, v)
 		}
 	}
 
@@ -129,4 +134,5 @@ func main() {
 		fmt.Printf("failed to listen: %s\n", err)
 		os.Exit(1)
 	}
+
 }
