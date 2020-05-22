@@ -2,12 +2,13 @@ package viacontrol
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"strconv"
 	"sync"
 
-	"github.com/byuoitav/common/log"
+	//"github.com/byuoitav/common/log"
 	//"github.com/byuoitav/common/status"
 	"github.com/byuoitav/kramer-driver/kramer"
 	"github.com/labstack/echo"
@@ -102,18 +103,18 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 	e.GET("/:address/volume/set/:volvalue", func(c echo.Context) error {
 		address := c.Param("address")
 		value := c.Param("volvalue")
-		log.L.Debugf("Value passed by SetViaVolume is %v", value)
+		fmt.Printf("Value passed by SetViaVolume is %v\n", value)
 
 		volume, err := strconv.Atoi(value)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, err.Error())
 		} else if volume > 100 || volume < 1 {
-			log.L.Debugf("Volume command error - volume value %s is outside the bounds of 1-100", value)
+			fmt.Errorf("Volume command error - volume value %s is outside the bounds of 1-100", value)
 			return c.JSON(http.StatusBadRequest, "Error: volume must be a value from 1 to 100!")
 		}
 
 		//volumec := strconv.Itoa(value)
-		log.L.Debugf("Setting volume for %s to %v...", address, volume)
+		fmt.Printf("Setting volume for %s to %v...\n", address, volume)
 
 		d, err := create(c.Request().Context(), address)
 		if err != nil {
@@ -123,10 +124,9 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 		response, err := d.SetVolume(c.Request().Context(), volume)
 
 		if err != nil {
-			log.L.Debugf("An Error Occured: %s", err)
 			return c.JSON(http.StatusBadRequest, "An error has occured while setting volume")
 		}
-		log.L.Debugf("Success: %s", response)
+		fmt.Printf("Success: %s\n", response)
 
 		return c.JSON(http.StatusOK, Volume{Volume: volume})
 
@@ -143,11 +143,9 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 
 		err = d.Reset(c.Request().Context())
 		if err != nil {
-			log.L.Debugf("There was a problem: %v", err.Error())
+			fmt.Errorf("There was a problem: %v", err.Error())
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
-
-		log.L.Debugf("Success.")
 
 		return c.JSON(http.StatusOK, "Success")
 	})
@@ -162,36 +160,14 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 
 		err = d.Reboot(c.Request().Context())
 		if err != nil {
-			log.L.Debugf("There was a problem: %v", err.Error())
+			fmt.Errorf("There was a problem: %v\n", err.Error())
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
-
-		log.L.Debugf("Success.")
 
 		return c.JSON(http.StatusOK, "Success")
 	})
 
 	// Informational Endpoints
-	/*	e.GET("/:address/connected", func(c echo.Context) error {
-			address := c.Param("address")
-
-			d, err := create(c.Request().Context(), address)
-			if err != nil {
-				return c.String(http.StatusInternalServerError, err.Error())
-			}
-
-			connected := d.IsConnected(c.Request().Context())
-
-			if connected {
-				log.L.Debugf("%s is connected", address)
-			} else {
-				log.L.Debugf("%s is not connected", address)
-			}
-
-			return c.JSON(http.StatusOK, connected)
-
-		})
-	*/
 	e.GET("/:address/hardware", func(c echo.Context) error {
 		address := c.Param("address")
 
@@ -202,7 +178,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 
 		hardware, err := d.GetHardwareInfo(c.Request().Context())
 		if err != nil {
-			log.L.Debugf("Error getting hardware status: %s", err.Error())
+			fmt.Errorf("Error getting hardware status: %s\n", err.Error())
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 
@@ -236,7 +212,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 
 		code, err := d.GetRoomCode(c.Request().Context())
 		if err != nil {
-			log.L.Errorf("Failed to retrieve VIA room code: %s", err.Error())
+			fmt.Errorf("Failed to retrieve VIA room code: %s", err.Error())
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 		return c.JSON(http.StatusOK, code)
@@ -253,7 +229,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 
 		userlist, err := d.GetStatusOfUsers(c.Request().Context())
 		if err != nil {
-			log.L.Errorf("Failed to retrieve current user list: %s", err.Error())
+			fmt.Errorf("Failed to retrieve current user list: %s", err.Error())
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 
@@ -271,7 +247,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 
 		err = d.SetAlert(c.Request().Context(), message)
 		if err != nil {
-			log.L.Errorf("Failed to send alert to %s: %s", address, err.Error())
+			fmt.Errorf("Failed to send alert to %s: %s", address, err.Error())
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 

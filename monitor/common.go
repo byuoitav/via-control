@@ -13,7 +13,7 @@ import (
 
 	"github.com/byuoitav/central-event-system/hub/base"
 	ces "github.com/byuoitav/central-event-system/messenger"
-	"github.com/byuoitav/common/log"
+	//	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/nerr"
 	"github.com/byuoitav/common/structs"
 	"github.com/byuoitav/common/v2/events"
@@ -44,7 +44,7 @@ func init() {
 
 	pihost = os.Getenv("SYSTEM_ID")
 	if len(pihost) == 0 {
-		log.L.Fatalf("SYSTEM_ID not set.")
+		fmt.Errorf("SYSTEM_ID not set.\n")
 	}
 
 	hostname, err = os.Hostname()
@@ -65,31 +65,13 @@ type message struct {
 	State     string
 }
 
-// Ping over connection to keep alive.
-// Move this to kramer-driver and call exported function rather unexported struct
-/*
-func pingTest(pconn *net.TCPConn) error {
-	_, err =
-		log.L.Info("Pong goes another ping!")
-	b, err := xml.Marshal(c)
-	if err != nil {
-		return err
-	}
-	_, err = pconn.Write(b)
-	if err != nil {
-		return err
-	}
-	return err
-}
-*/
-
 // Retry connection if connection has failed
 func retryViaConnection(ctx context.Context, device structs.Device, pconn *kramer.PersistentViaConnection, event events.Event, v *kramer.Via) {
-	log.L.Info("[retry] Retrying Connection to VIA")
+	v.Infof("[retry] Retrying Connection to VIA")
 	v.Address = device.Address
 	pconn, err := v.PersistConnection(ctx)
 	for err != nil {
-		log.L.Error("Retry Failed, Trying again in 10 seconds")
+		v.Errorf("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
 		//		pconn, err = (*VIA).PersistConnection(addr, viaUser, viaPass)
 	}
@@ -103,8 +85,8 @@ func readPump(ctx context.Context, device structs.Device, pconn *kramer.Persiste
 	// defer closing connection
 	defer func(device structs.Device) {
 		(pconn.Conn).Close()
-		log.L.Errorf("Connection to VIA %v is dying.", device.Address)
-		log.L.Info("Trying to reconnect........")
+		v.Errorf("Connection to VIA %v is dying.", device.Address)
+		v.Infof("Trying to reconnect........")
 		//retry connection to VIA device
 		retryViaConnection(ctx, device, pconn, event, v)
 	}(device)
@@ -119,7 +101,7 @@ func readPump(ctx context.Context, device structs.Device, pconn *kramer.Persiste
 		r, err := reader.ReadBytes('\x0D')
 		if err != nil {
 			err = fmt.Errorf("error reading from system: %s", err.Error())
-			log.L.Error(err.Error())
+			v.Errorf(err.Error())
 			return
 		}
 		//Buffer = append(Buffer, tmp[:r]...)
@@ -201,7 +183,7 @@ func writePump(ctx context.Context, device structs.Device, pconn *kramer.Persist
 	// defer closing connection
 	defer func(device structs.Device) {
 		(pconn.Conn).Close()
-		log.L.Errorf("Error on write pump for %v. Write pump closing.", device.Address)
+		v.Errorf("Error on write pump for %v. Write pump closing.", device.Address)
 	}(device)
 	ticker := time.NewTicker(pingInterval * time.Millisecond)
 	// Once the pingInterval is reached, execute the ping -
@@ -209,7 +191,7 @@ func writePump(ctx context.Context, device structs.Device, pconn *kramer.Persist
 	for range ticker.C {
 		err := v.Ping(pconn)
 		if err != nil {
-			log.L.Errorf("Ping Failed Error: %v", err)
+			v.Errorf("Ping Failed Error: %v", err)
 			return
 		}
 	}
@@ -217,11 +199,11 @@ func writePump(ctx context.Context, device structs.Device, pconn *kramer.Persist
 
 // StartMonitoring service for each VIA in a room
 func StartMonitoring(ctx context.Context, device structs.Device, v *kramer.Via) *kramer.PersistentViaConnection {
-	log.L.Debugf("Building Connection and starting read buffer for %s\n", device.Address)
+	v.Debugf("Building Connection and starting read buffer for %s\n", device.Address)
 	v.Address = device.Address
 	pconn, err := v.PersistConnection(ctx)
 	for err != nil {
-		log.L.Error("Retry Failed, Trying again in 10 seconds")
+		v.Errorf("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
 		pconn, err = v.PersistConnection(ctx)
 	}
@@ -253,13 +235,13 @@ func messenger() *ces.Messenger {
 	once.Do(func() {
 		hub := os.Getenv("HUB_ADDRESS")
 		if len(hub) == 0 {
-			log.L.Fatal("HUB_ADDRESS is not set.")
+			fmt.Errorf("HUB_ADDRESS is not set.")
 		}
 
 		var nerr *nerr.E
 		msg, nerr = ces.BuildMessenger(hub, base.Messenger, 1000)
 		if nerr != nil {
-			log.L.Fatalf("failed to build the messenger: %s", nerr.String())
+			fmt.Errorf("failed to build the messenger: %s", nerr.String())
 			return
 		}
 	})
