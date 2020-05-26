@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"sync"
 
-	//"github.com/byuoitav/common/log"
-	//"github.com/byuoitav/common/status"
 	"github.com/byuoitav/kramer-driver/kramer"
 	"github.com/labstack/echo"
 )
@@ -28,7 +26,6 @@ type ViaDevice interface {
 	Reboot(ctx context.Context) error
 	Reset(ctx context.Context) error
 	GetRoomCode(ctx context.Context) (string, error)
-	//IsConnected(ctx context.Context) bool
 	GetHardwareInfo(ctx context.Context) (kramer.HardwareInfo, error)
 	GetStatusOfUsers(ctx context.Context) (kramer.VIAUsers, error)
 	SetAlert(ctx context.Context, AMessage string) error
@@ -113,7 +110,6 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.JSON(http.StatusBadRequest, "Error: volume must be a value from 1 to 100!")
 		}
 
-		//volumec := strconv.Itoa(value)
 		fmt.Printf("Setting volume for %s to %v...\n", address, volume)
 
 		d, err := create(c.Request().Context(), address)

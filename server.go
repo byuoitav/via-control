@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/byuoitav/common/db"
-	//"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/structs"
 	"github.com/byuoitav/kramer-driver/kramer"
 	"github.com/byuoitav/via-control/monitor"
@@ -152,7 +151,7 @@ func main() {
 		Logger:   sugared,
 	}
 
-	var re = regexp.MustCompile(`-CP3$`)
+	var re = regexp.MustCompile(`-CP1$`)
 	test := re.MatchString(name)
 	var ctx context.Context
 
