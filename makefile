@@ -40,6 +40,7 @@ build: deps
 
 	@echo
 	@echo Building for linux-amd64...
+	@mkdir cmd/via-control
 	@cd cmd/via-control/ && env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o ../../dist/${NAME}-linux-amd64
 
 	@echo
