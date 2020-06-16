@@ -3,9 +3,7 @@ package monitor
 import (
 	"bufio"
 	"context"
-	"encoding/xml"
 	"fmt"
-	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -14,11 +12,10 @@ import (
 
 	"github.com/byuoitav/central-event-system/hub/base"
 	ces "github.com/byuoitav/central-event-system/messenger"
-	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/nerr"
 	"github.com/byuoitav/common/structs"
 	"github.com/byuoitav/common/v2/events"
-	"github.com/byuoitav/kramer-driver/via"
+	"github.com/byuoitav/kramer-driver/kramer"
 )
 
 const (
@@ -45,7 +42,7 @@ func init() {
 
 	pihost = os.Getenv("SYSTEM_ID")
 	if len(pihost) == 0 {
-		log.L.Fatalf("SYSTEM_ID not set.")
+		fmt.Errorf("SYSTEM_ID not set.\n")
 	}
 
 	hostname, err = os.Hostname()
@@ -66,61 +63,43 @@ type message struct {
 	State     string
 }
 
-// Ping over connection to keep alive.
-func pingTest(pconn *net.TCPConn) error {
-	var c via.Command
-	c.Username = "su"
-	c.Command = "IpInfo"
-	log.L.Info("Pong goes another ping!")
-	b, err := xml.Marshal(c)
-	if err != nil {
-		return err
-	}
-	_, err = pconn.Write(b)
-	if err != nil {
-		return err
-	}
-	return err
-}
-
 // Retry connection if connection has failed
-func retryViaConnection(ctx context.Context, device structs.Device, pconn *net.TCPConn, event events.Event, viaUser string, viaPass string) {
-	log.L.Info("[retry] Retrying Connection to VIA")
-	addr := device.Address
-	test := via.VIA{addr, viaUser, viaPass}
-	pconn, err := test.PersistConnection(ctx)
+func retryViaConnection(ctx context.Context, device structs.Device, pconn *kramer.PersistentViaConnection, event events.Event, v *kramer.Via) {
+	v.Infof("[retry] Retrying Connection to VIA")
+	v.Address = device.Address
+	pconn, err := v.PersistConnection(ctx)
 	for err != nil {
-		log.L.Error("Retry Failed, Trying again in 10 seconds")
+		v.Errorf("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
 		//		pconn, err = (*VIA).PersistConnection(addr, viaUser, viaPass)
 	}
 
-	go readPump(ctx, device, pconn, event, viaUser, viaPass)
-	go writePump(ctx, device, pconn)
+	go readPump(ctx, device, pconn, event, v)
+	go writePump(ctx, device, pconn, v)
 }
 
 // Read events and send them to console
-func readPump(ctx context.Context, device structs.Device, pconn *net.TCPConn, event events.Event, viaUser string, viaPass string) {
+func readPump(ctx context.Context, device structs.Device, pconn *kramer.PersistentViaConnection, event events.Event, v *kramer.Via) {
 	// defer closing connection
 	defer func(device structs.Device) {
-		pconn.Close()
-		log.L.Errorf("Connection to VIA %v is dying.", device.Address)
-		log.L.Info("Trying to reconnect........")
+		(pconn.Conn).Close()
+		v.Errorf("Connection to VIA %v is dying.", device.Address)
+		v.Infof("Trying to reconnect........")
 		//retry connection to VIA device
-		retryViaConnection(ctx, device, pconn, event, viaUser, viaPass)
+		retryViaConnection(ctx, device, pconn, event, v)
 	}(device)
 	timeoutDuration := 300 * time.Second
 
 	for {
 		var m message
 		//set deadline for reads - keep the connection alive during that time
-		pconn.SetReadDeadline(time.Now().Add(timeoutDuration))
+		(pconn.Conn).SetReadDeadline(time.Now().Add(timeoutDuration))
 		//start reader to read into buffer
-		reader := bufio.NewReader(pconn)
+		reader := bufio.NewReader(pconn.Reader)
 		r, err := reader.ReadBytes('\x0D')
 		if err != nil {
 			err = fmt.Errorf("error reading from system: %s", err.Error())
-			log.L.Error(err.Error())
+			v.Errorf(err.Error())
 			return
 		}
 		//Buffer = append(Buffer, tmp[:r]...)
@@ -198,37 +177,33 @@ func readPump(ctx context.Context, device structs.Device, pconn *net.TCPConn, ev
 	}
 }
 
-func writePump(ctx context.Context, device structs.Device, pconn *net.TCPConn) {
+func writePump(ctx context.Context, device structs.Device, pconn *kramer.PersistentViaConnection, v *kramer.Via) {
 	// defer closing connection
 	defer func(device structs.Device) {
-		pconn.Close()
-		log.L.Errorf("Error on write pump for %v. Write pump closing.", device.Address)
+		(pconn.Conn).Close()
+		v.Errorf("Error on write pump for %v. Write pump closing.", device.Address)
 	}(device)
 	ticker := time.NewTicker(pingInterval * time.Millisecond)
 	// Once the pingInterval is reached, execute the ping -
 	// On Error, return and execute deferred to close the connection
 	for range ticker.C {
-		err := pingTest(pconn)
+		err := v.Ping(pconn)
 		if err != nil {
-			log.L.Errorf("Ping Failed Error: %v", err)
+			v.Errorf("Ping Failed Error: %v", err)
 			return
 		}
 	}
 }
 
 // StartMonitoring service for each VIA in a room
-func StartMonitoring(ctx context.Context, device structs.Device, viaUser string, viaPass string) *net.TCPConn {
-	log.L.Debugf("Building Connection and starting read buffer for %s\n", device.Address)
-	addr := device.Address
-	a := addr
-	u := viaUser
-	p := viaPass
-	test := via.VIA{a, u, p}
-	pconn, err := test.PersistConnection(ctx)
+func StartMonitoring(ctx context.Context, device structs.Device, v *kramer.Via) *kramer.PersistentViaConnection {
+	v.Debugf("Building Connection and starting read buffer for %s\n", device.Address)
+	v.Address = device.Address
+	pconn, err := v.PersistConnection(ctx)
 	for err != nil {
-		log.L.Error("Retry Failed, Trying again in 10 seconds")
+		v.Errorf("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
-		pconn, err = test.PersistConnection(ctx)
+		pconn, err = v.PersistConnection(ctx)
 	}
 
 	// start event node
@@ -246,8 +221,8 @@ func StartMonitoring(ctx context.Context, device structs.Device, viaUser string,
 
 	event.AddToTags(events.DetailState, events.AutoGenerated, events.Via)
 
-	go readPump(ctx, device, pconn, event, viaUser, viaPass)
-	go writePump(ctx, device, pconn)
+	go readPump(ctx, device, pconn, event, v)
+	go writePump(ctx, device, pconn, v)
 	return pconn
 }
 
@@ -258,13 +233,13 @@ func messenger() *ces.Messenger {
 	once.Do(func() {
 		hub := os.Getenv("HUB_ADDRESS")
 		if len(hub) == 0 {
-			log.L.Fatal("HUB_ADDRESS is not set.")
+			fmt.Errorf("HUB_ADDRESS is not set.")
 		}
 
 		var nerr *nerr.E
 		msg, nerr = ces.BuildMessenger(hub, base.Messenger, 1000)
 		if nerr != nil {
-			log.L.Fatalf("failed to build the messenger: %s", nerr.String())
+			fmt.Errorf("failed to build the messenger: %s", nerr.String())
 			return
 		}
 	})
