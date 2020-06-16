@@ -1,6 +1,8 @@
 FROM gcr.io/distroless/static
 MAINTAINER Clinton Reeder <clinton_reeder@byu.edu>
 
-COPY via-control /via-control
+ARG NAME
+
+COPY ${NAME} /via-control
 
 ENTRYPOINT ["/via-control"]
