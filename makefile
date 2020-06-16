@@ -32,7 +32,7 @@ lint:
 	@golangci-lint run --tests=false
 
 deps:
-	@echo Downloading backend dependencies...
+	#@echo Downloading backend dependencies...
 	@go mod download
 
 build: deps
