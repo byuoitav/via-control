@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/byuoitav/kramer-driver/kramer"
+	"github.com/byuoitav/kramer-driver"
 	"github.com/labstack/echo"
 )
 
