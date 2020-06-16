@@ -85,5 +85,5 @@ else ifneq ($(shell echo ${TAG} | grep -x -E ${PRD_TAG_REGEX}),)
 endif
 
 clean:
-	@go clean
+	@go clean -modcache
 	@rm -rf dist/
