@@ -2,8 +2,6 @@ module github.com/byuoitav/via-control
 
 go 1.13
 
-replace github.com/byuoitav/kramer-driver => /home/creeder/go/src/github.com/byuoitav/kramer-driver
-
 require (
 	github.com/byuoitav/av-control-api v0.3.2 // indirect
 	github.com/byuoitav/central-event-system v0.0.0-20200121172633-64fd9d467249
