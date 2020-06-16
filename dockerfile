@@ -1,5 +1,5 @@
 FROM gcr.io/distroless/static
-MAINTAINER Daniel Randall <danny_randall@byu.edu>
+MAINTAINER Clinton Reeder <clinton_reeder@byu.edu>
 
 ARG NAME
 

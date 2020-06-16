@@ -1,4 +1,4 @@
-NAME := via-control 
+NAME := via-control
 OWNER := byuoitav
 PKG := github.com/${OWNER}/${NAME}
 DOCKER_URL := docker.pkg.github.com
@@ -40,7 +40,7 @@ build: deps
 
 	@echo
 	@echo Building for linux-amd64...
-	@cd cmd/visca-service/ && env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o ../../dist/${NAME}-linux-amd64
+	@cd cmd/via-control/ && env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o ../../dist/${NAME}-linux-amd64
 
 	@echo
 	@echo Build output is located in ./dist/.
