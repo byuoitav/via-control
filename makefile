@@ -40,7 +40,7 @@ build: deps
 
 	@echo
 	@echo Building for linux-amd64...
-	@env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o ../../dist/${NAME}-linux-amd64
+	@env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o dist/${NAME}-linux-amd64
 
 	@echo
 	@echo Build output is located in ./dist/.
