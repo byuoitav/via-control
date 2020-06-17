@@ -40,7 +40,7 @@ build: deps
 
 	@echo
 	@echo Building for linux-amd64...
-	#@cd /tmp/via-control/ && env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o ../../dist/${NAME}-linux-amd64
+	@env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o ../../dist/${NAME}-linux-amd64
 
 	@echo
 	@echo Build output is located in ./dist/.
@@ -56,6 +56,7 @@ else ifneq ($(shell echo ${TAG} | grep -x -E ${DEV_TAG_REGEX}),)
 
 	@echo Building container ${DOCKER_URL}/${OWNER}/${NAME}/${NAME}-dev:${TAG}
 	@docker build -f dockerfile --build-arg NAME=${NAME}-linux-amd64 -t ${DOCKER_URL}/${OWNER}/${NAME}/${NAME}-dev:${TAG} dist
+	#@docker build -f dockerfile --build-arg NAME=${NAME}-linux-amd64 -t ${DOCKER_URL}/${OWNER}/${NAME}/${NAME}-dev:${TAG} dist
 else ifneq ($(shell echo ${TAG} | grep -x -E ${PRD_TAG_REGEX}),)
 	@echo Building prd container with tag ${TAG}
 

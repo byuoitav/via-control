@@ -24,6 +24,8 @@ github.com/byuoitav/kramer-driver v0.1.9 h1:js6cjiHvLEbtjyI67ScTeeC6izFTlTbKbtUB
 github.com/byuoitav/kramer-driver v0.1.9/go.mod h1:/2ZiL6I2mKzkK2bwK6ow91oMbZQU5pWPGgeiK+0XzXY=
 github.com/byuoitav/kramer-driver v0.1.10 h1:YJT7UONNgeYwKl+ooPfhvKDZp7XNbMxUXUL+xI4U/F0=
 github.com/byuoitav/kramer-driver v0.1.10/go.mod h1:/2ZiL6I2mKzkK2bwK6ow91oMbZQU5pWPGgeiK+0XzXY=
+github.com/byuoitav/kramer-driver v0.1.11 h1:bE9nV86Up/p444LeGSrK+/iLHaD4QjWRXqLkNAZbHyM=
+github.com/byuoitav/kramer-driver v0.1.11/go.mod h1:7UA2AZ1S2tF+vXGvYO6Lg89/MMNHFlF4SWTZCWk1J4g=
 github.com/byuoitav/kramer-microservice v0.0.0-20190827223429-01781d8ea02e h1:o1HFxoZOPD4G1R+3+wrzTkRBhXYYUH4np/b/we2RRYw=
 github.com/byuoitav/kramer-microservice v0.0.0-20190827223429-01781d8ea02e/go.mod h1:KP9bgXPtoZC2/35LRbqdeAgugIJP04dVKqDN0QQzYwA=
 github.com/byuoitav/london-driver v0.0.1/go.mod h1:/mtjR2i0y6jbInJHu7n9KFa1BEvQBTezn276MXdYNRE=
