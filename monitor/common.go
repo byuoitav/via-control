@@ -202,6 +202,7 @@ func StartMonitoring(ctx context.Context, device structs.Device, v *kramer.Via) 
 	pconn, err := v.PersistConnection(ctx)
 	for err != nil {
 		v.Errorf("Retry Failed, Trying again in 10 seconds")
+		v.Errorf("Error: %v", err)
 		time.Sleep(reconnInterval)
 		pconn, err = v.PersistConnection(ctx)
 	}
