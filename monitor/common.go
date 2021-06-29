@@ -71,7 +71,7 @@ func retryViaConnection(ctx context.Context, device structs.Device, pconn *krame
 	for err != nil {
 		v.Errorf("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
-		//		pconn, err = (*VIA).PersistConnection(addr, viaUser, viaPass)
+		pconn, err = v.PersistConnection(ctx)
 	}
 
 	go readPump(ctx, device, pconn, event, v)
