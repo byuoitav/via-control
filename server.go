@@ -143,7 +143,7 @@ func main() {
 		}, nil
 	}
 	// Building ViaStruct for use with the ViaMonitor -
-	sugared.Infof("Building Via struct for controller.....")
+	sugared.Debugf("Building Via struct for controller.....")
 	v := &kramer.Via{
 		Address:  addr,
 		Username: username,

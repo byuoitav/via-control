@@ -120,20 +120,21 @@ func readPump(ctx context.Context, device structs.Device, pconn *kramer.Persiste
 
 			i--
 			loggedinCount := strconv.Itoa(i)
-			fmt.Printf("The number of people logged in is %v\n", loggedinCount)
+			fmt.Printf("Current User Count: %v\n", loggedinCount)
 			m.State = loggedinCount
 
 		// Who just logged in
 		case Out[0] == "PList" && !(Out[2] == "cnt"):
 			m.EventType = "user-login-logout"
-			if Out[2] == "1" {
+			if Out[3] == "1" {
 				m.Action = "login"
 				fmt.Printf("%v - Login\n", Out[2])
-			} else if Out[2] == "0" {
+			} else if Out[3] == "0" {
 				m.Action = "logout"
 				fmt.Printf("%v - Logout\n", Out[2])
 			}
 			m.User = Out[2]
+			fmt.Printf("User Logged in: %v\n", Out[2])
 			m.State = m.Action
 		// Started or stopped media
 		case Out[0] == "MediaStatus":

@@ -56,7 +56,7 @@ type CreateVIAFunc func(context.Context, string) (ViaDevice, error)
 func CreateVIAServer(create CreateVIAFunc) (Server, error) {
 	e := newEchoServer()
 	m := &sync.Map{}
-	//Magic happens right here
+	// Magic happens right here
 	via := func(ctx context.Context, addr string) (ViaDevice, error) {
 		if via, ok := m.Load(addr); ok {
 			return via.(ViaDevice), nil
@@ -179,6 +179,24 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 		}
 
 		return c.JSON(http.StatusOK, hardware)
+	})
+	// Second Hardware Endpoint
+	e.GET("/:address/info", func(c echo.Context) error {
+		address := c.Param("address")
+
+		d, err := create(c.Request().Context(), address)
+		if err != nil {
+			fmt.Errorf("Error Getting full info: %s\n", err.Error())
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+
+		info, err := d.GetInfo(c.Request().Context())
+		if err != nil {
+			fmt.Errorf("Error Getting Info: %s\n", err.Error())
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, info)
 	})
 
 	/*e.GET("/:address/active", func(c echo.Context) error {
