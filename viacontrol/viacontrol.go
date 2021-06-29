@@ -27,7 +27,6 @@ type ViaDevice interface {
 	Reset(ctx context.Context) error
 	GetRoomCode(ctx context.Context) (string, error)
 	GetHardwareInfo(ctx context.Context) (kramer.HardwareInfo, error)
-	GetInfo(ctx context.Context) (interface{}, error)
 	GetStatusOfUsers(ctx context.Context) (kramer.VIAUsers, error)
 	SetAlert(ctx context.Context, AMessage string) error
 }
@@ -182,7 +181,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 		return c.JSON(http.StatusOK, hardware)
 	})
 	// Second Hardware Endpoint
-	e.GET("/:address/info", func(c echo.Context) error {
+	/*e.GET("/:address/info", func(c echo.Context) error {
 		address := c.Param("address")
 
 		d, err := create(c.Request().Context(), address)
@@ -199,7 +198,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 
 		return c.JSON(http.StatusOK, info)
 	})
-
+	*/
 	/*e.GET("/:address/active", func(c echo.Context) error {
 		address := c.Param("address")
 		d, err := create(c.Request().Context(), address)
