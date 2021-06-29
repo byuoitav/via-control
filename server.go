@@ -85,7 +85,7 @@ func main() {
 		password string
 		logLevel int8
 	)
-
+	// flags for cmd input
 	pflag.IntVarP(&port, "port", "P", 8014, "port to run the microservice on")
 	pflag.StringVarP(&username, "username", "u", "", "username for device")
 	pflag.StringVarP(&password, "password", "p", "", "password for device")
@@ -151,6 +151,7 @@ func main() {
 		Logger:   sugared,
 	}
 
+	// Execute only against the first CP in a room
 	var re = regexp.MustCompile(`-CP1$`)
 	test := re.MatchString(name)
 	var ctx context.Context
