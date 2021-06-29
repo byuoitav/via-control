@@ -71,6 +71,7 @@ func retryViaConnection(ctx context.Context, device structs.Device, pconn *krame
 	for err != nil {
 		v.Errorf("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
+		// Will continue to retry until successful
 		pconn, err = v.PersistConnection(ctx)
 	}
 
