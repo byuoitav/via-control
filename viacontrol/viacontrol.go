@@ -22,11 +22,12 @@ type wrappedEchoServer struct {
 
 type ViaDevice interface {
 	GetVolume(ctx context.Context) (int, error)
-	SetVolume(ctx context.Context, volume int) (string, error)
+	SetViaVolume(ctx context.Context, volume int) (string, error)
 	Reboot(ctx context.Context) error
 	Reset(ctx context.Context) error
-	GetRoomCode(ctx context.Context) (string, error)
 	GetHardwareInfo(ctx context.Context) (kramer.HardwareInfo, error)
+	GetInfo(ctx context.Context) (interface{}, error)
+	GetRoomCode(ctx context.Context) (string, error)
 	GetStatusOfUsers(ctx context.Context) (kramer.VIAUsers, error)
 	SetAlert(ctx context.Context, AMessage string) error
 }
@@ -117,7 +118,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		response, err := d.SetVolume(c.Request().Context(), volume)
+		response, err := d.SetViaVolume(c.Request().Context(), volume)
 
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, "An error has occured while setting volume")
@@ -181,7 +182,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 		return c.JSON(http.StatusOK, hardware)
 	})
 	// Second Hardware Endpoint
-	/*e.GET("/:address/info", func(c echo.Context) error {
+	e.GET("/:address/info", func(c echo.Context) error {
 		address := c.Param("address")
 
 		d, err := create(c.Request().Context(), address)
@@ -198,7 +199,7 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 
 		return c.JSON(http.StatusOK, info)
 	})
-	*/
+
 	/*e.GET("/:address/active", func(c echo.Context) error {
 		address := c.Param("address")
 		d, err := create(c.Request().Context(), address)
