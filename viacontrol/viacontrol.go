@@ -12,6 +12,10 @@ import (
 	"github.com/labstack/echo"
 )
 
+type msg struct {
+	Message string `json: "message"`
+}
+
 type Volume struct {
 	Volume int `json:"volume"`
 }
@@ -251,16 +255,18 @@ func addVIARoutes(e *echo.Echo, create CreateVIAFunc) {
 		return c.JSON(http.StatusOK, userlist)
 	})
 	// Send an alert to a VIA
-	e.GET("/:address/alert/message/:message", func(c echo.Context) error {
+	e.POST("/:address/alert/message", func(c echo.Context) error {
 		address := c.Param("address")
-		message := c.Param("message")
-
+		m := new(msg)
+		if err := c.Bind(m); err != nil {
+			return c.JSON(http.StatusInternalServerError, err)
+		}
 		d, err := create(c.Request().Context(), address)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 
-		err = d.SetAlert(c.Request().Context(), message)
+		err = d.SetAlert(c.Request().Context(), m.Message)
 		if err != nil {
 			fmt.Errorf("Failed to send alert to %s: %s", address, err.Error())
 			return c.JSON(http.StatusInternalServerError, err)
